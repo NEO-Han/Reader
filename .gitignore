@@ -1,0 +1,38 @@
+# 编译生成文件
+Debug/
+Release/
+debug/
+release/
+*.obj
+*.o
+*.exe
+*.dll
+*.lib
+*.a
+*.so
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.sln.DotSettings
+*.sln.DotSettings.user
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+.directory
+
+# 缓存
+.cache/
+*.tmp
+
+# 日志
+*.log
+
