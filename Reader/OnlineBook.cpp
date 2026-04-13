@@ -148,7 +148,11 @@ bool OnlineBook::IsLoading(void)
 
 void OnlineBook::JumpChapter(HWND hWnd, int index)
 {
-    if (index < 0 || index > (int)m_Chapters.size())
+    // Fixed: Use >= instead of > for proper bounds checking (valid indices: [0, size-1])
+    if (index < 0 || index >= (int)m_Chapters.size())
+        return;
+
+    if (m_Chapters.empty())
         return;
 
     if (m_Chapters[index].index == -1)
@@ -171,9 +175,10 @@ void OnlineBook::JumpPrevChapter(HWND hWnd)
     if (cur == -1)
         return;
 
-    if (m_Chapters.size() == 0)
+    if (m_Chapters.empty())
         return;
 
+    // Fixed: Use < instead of <= for proper bounds checking
     if (prev >= 0 && prev < (int)m_Chapters.size())
     {
         if (m_Chapters[prev].index == -1)
@@ -198,9 +203,10 @@ void OnlineBook::JumpNextChapter(HWND hWnd)
     if (cur == -1)
         return;
 
-    if (m_Chapters.size() == 0)
+    if (m_Chapters.empty())
         return;
 
+    // Fixed: Use < instead of <= for proper bounds checking
     if (next >= 0 && next < (int)m_Chapters.size())
     {
         if (m_Chapters[next].index == -1)

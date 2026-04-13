@@ -116,9 +116,19 @@ bool Cache::save()
         size = strlen(json);
         encode(json, size);
 
-        // check if data is changed
-        if (size != m_jsonlen
-            || 0 != memcmp(m_jsonbak, json, m_jsonlen))
+        // Fixed: Check if data changed - separate length check from memcmp
+        bool data_changed = false;
+        if (size != m_jsonlen)
+        {
+            data_changed = true;
+        }
+        else if (m_jsonbak)
+        {
+            // Use actual size as comparison length to avoid buffer over-read
+            data_changed = (0 != memcmp(m_jsonbak, json, size));
+        }
+
+        if (data_changed)
         {
             result = write(json, size);
 
@@ -126,13 +136,22 @@ bool Cache::save()
             if (size != m_jsonlen)
             {
                 m_jsonlen = size;
-                m_jsonbak = realloc(m_jsonbak, m_jsonlen);
-                if (!m_jsonbak)
+                void* new_bak = realloc(m_jsonbak, m_jsonlen);
+                if (new_bak)
                 {
+                    m_jsonbak = new_bak;
+                }
+                else
+                {
+                    free(m_jsonbak);
+                    m_jsonbak = NULL;
                     m_jsonlen = 0;
+                    create_json_free(json);
+                    return false;  // Out of memory
                 }
             }
-            if (m_jsonbak)
+
+            if (m_jsonbak && m_jsonlen > 0)
                 memcpy(m_jsonbak, json, m_jsonlen);
         }
         else

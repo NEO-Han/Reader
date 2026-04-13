@@ -237,6 +237,10 @@ bool Book::DecodeText(const char *src, int srcsize, wchar_t **dst, int *dstsize)
 {
     type_t bom = Unknown;
 
+    // Fixed: Add parameter validation
+    if (!src || srcsize <= 0 || !dst || !dstsize)
+        return false;
+
     if (Unknown != (bom = Utils::check_bom(src, srcsize)))
     {
         if (utf8 == bom)
@@ -244,6 +248,9 @@ bool Book::DecodeText(const char *src, int srcsize, wchar_t **dst, int *dstsize)
             src += 3;
             srcsize -= 3;
             *dst = Utils::utf8_to_utf16_ex(src, srcsize, dstsize);
+            // Fixed: Check return value
+            if (*dst == NULL)
+                return false;
             (*dstsize)--;
         }
         else if (utf16_le == bom)
@@ -252,6 +259,9 @@ bool Book::DecodeText(const char *src, int srcsize, wchar_t **dst, int *dstsize)
             srcsize -= 2;
             *dstsize = srcsize / 2;
             *dst = (wchar_t *)malloc(sizeof(wchar_t) * ((*dstsize) + 1));
+            // Fixed: Check memory allocation
+            if (*dst == NULL)
+                return false;
             memcpy(*dst, src, srcsize);
             (*dst)[*dstsize] = 0;
         }
@@ -261,6 +271,9 @@ bool Book::DecodeText(const char *src, int srcsize, wchar_t **dst, int *dstsize)
             srcsize -= 2;
             *dstsize = srcsize / 2;
             *dst = (wchar_t *)malloc(sizeof(wchar_t) * ((*dstsize) + 1));
+            // Fixed: Check memory allocation
+            if (*dst == NULL)
+                return false;
             memcpy(*dst, src, srcsize);
             (*dst)[*dstsize] = 0;
             *dst = (wchar_t *)Utils::be_to_le((char *)(*dst), srcsize);
@@ -273,33 +286,29 @@ bool Book::DecodeText(const char *src, int srcsize, wchar_t **dst, int *dstsize)
     }
     else if (Utils::is_ascii(src, srcsize > 1024 ? 1024 : srcsize))
     {
-#if 0
-        *dst = Utils::utf8_to_utf16(src, dstsize);
-        (*dstsize)--;
-#else
         *dst = Utils::utf8_to_utf16_ex(src, srcsize, dstsize);
-#endif
+        // Fixed: Check return value
+        if (*dst == NULL)
+            return false;
     }
     else if (Utils::is_utf8(src, srcsize > 1024 ? 1024 : srcsize))
     {
-#if 0
-        *dst = Utils::utf8_to_utf16(src, dstsize);
-        (*dstsize)--;
-#else
-        *dst = Utils::utf8_to_utf16_ex(src, srcsize, dstsize); // fixed bug : invalid utf8 text
-#endif
+        *dst = Utils::utf8_to_utf16_ex(src, srcsize, dstsize);
+        // Fixed: Check return value
+        if (*dst == NULL)
+            return false;
     }
     else
     {
-#if 0
-        *dst = Utils::ansi_to_utf16(src, dstsize);
-        (*dstsize)--;
-#else
         *dst = Utils::ansi_to_utf16_ex(src, srcsize, dstsize);
-#endif
+        // Fixed: Check return value
+        if (*dst == NULL)
+            return false;
     }
 
-    FormatText(*dst, dstsize);
+    // Fixed: Check FormatText return value
+    if (!FormatText(*dst, dstsize))
+        return false;
 
     return true;
 }
@@ -330,12 +339,14 @@ bool Book::FormatText(wchar_t *text, int *len, bool flag)
         // Remove extra spaces
         if (0x20 == text[i] || 0xA0 == text[i]) // Keep up to 4 consecutive spaces
         {
-            if (index > 3 && buf[index - 1] == text[i] && buf[index - 2] == text[i] && buf[index - 3] == text[i] && buf[index - 4] == text[i])
+            // Fixed: Use >= 4 instead of > 3 for array bounds safety
+            if (index >= 4 && buf[index - 1] == text[i] && buf[index - 2] == text[i] && buf[index - 3] == text[i] && buf[index - 4] == text[i])
                 continue;
         }
         else if (IsBlanks(text[i])) // Keep up to 2 consecutive spaces
         {
-            if (index > 1 && buf[index - 1] == text[i] && buf[index - 2] == text[i])
+            // Fixed: Use >= 2 instead of > 1 for array bounds safety
+            if (index >= 2 && buf[index - 1] == text[i] && buf[index - 2] == text[i])
                 continue;
         }
 		

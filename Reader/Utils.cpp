@@ -156,12 +156,31 @@ char* Utils::utf16_to_utf8_ex(const wchar_t* str, int size, int* len)
 char* Utils::utf16_to_utf8_bom(const wchar_t* str, int size, int* len)
 {
     char* result;
-    int bom_header_len = 3;//strlen(UTF_8_BOM);
-    *len = WideCharToMultiByte(CP_UTF8, 0, str, size, NULL, 0, NULL, NULL);
-    result = (char*)malloc((*len) * sizeof(char) + bom_header_len);
-    memset(result, 0, (*len) * sizeof(char) + bom_header_len);
+    int bom_header_len = 3;
+    int utf8_len = WideCharToMultiByte(CP_UTF8, 0, str, size, NULL, 0, NULL, NULL);
+
+    // Fixed: Allocate enough space for BOM + UTF-8 data
+    result = (char*)malloc(utf8_len + bom_header_len);
+    if (!result)
+    {
+        *len = 0;
+        return NULL;
+    }
+
+    memset(result, 0, utf8_len + bom_header_len);
     memcpy(result, UTF_8_BOM, bom_header_len);
-    WideCharToMultiByte(CP_UTF8, 0, str, size, result + bom_header_len, *len, NULL, NULL);
+
+    // Fixed: Write UTF-8 data after BOM header
+    int written = WideCharToMultiByte(CP_UTF8, 0, str, size, result + bom_header_len, utf8_len, NULL, NULL);
+    if (!written)
+    {
+        free(result);
+        *len = 0;
+        return NULL;
+    }
+
+    // Fixed: Return total length including BOM
+    *len = bom_header_len + utf8_len;
     return result;
 }
 
@@ -179,8 +198,16 @@ int Utils::g_len = 0;
 wchar_t* Utils::g_wresult = NULL;
 int Utils::g_wlen = 0;
 
+// Fixed: Note - these static buffers are NOT thread-safe!
+// For thread-safe string conversions, use the Safe versions below or implement thread_local storage
+// This is kept for backward compatibility but should be avoided in multi-threaded contexts
+
 char* Utils::Utf16ToUtf8(const wchar_t* str)
 {
+    // WARNING: This function is NOT thread-safe!
+    // Multiple threads calling this simultaneously will overwrite each other's buffers
+    // Use Utf16ToUtf8Safe() for thread-safe operation
+
     int len;
 
     len = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
@@ -195,8 +222,11 @@ char* Utils::Utf16ToUtf8(const wchar_t* str)
         g_result = (char*)realloc(g_result, g_len * sizeof(char));
     }
 
-    WideCharToMultiByte(CP_UTF8, 0, str, -1, g_result, len, NULL, NULL);
-    g_result[len] = 0;
+    if (g_result)
+    {
+        WideCharToMultiByte(CP_UTF8, 0, str, -1, g_result, len, NULL, NULL);
+        g_result[len] = 0;
+    }
     return g_result;
 }
 

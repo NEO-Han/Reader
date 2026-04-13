@@ -202,8 +202,7 @@ end:
     if (buf)
         free(buf);
 
-    if (err != UNZ_OK)
-        FreeFilelist();
+    // Note: FreeFilelist() is called by ParserBook() on error path, not here
     return err == UNZ_OK;
 }
 
