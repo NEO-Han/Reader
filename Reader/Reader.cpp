@@ -1236,6 +1236,7 @@ Gdiplus::Bitmap* LoadBarCodeMP(void)
     return image;
 }
 
+#ifdef ENABLE_NETWORK
 INT_PTR CALLBACK RewardProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     Gdiplus::Bitmap *image_alipay = NULL;
@@ -1336,6 +1337,7 @@ INT_PTR CALLBACK RewardProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
     }
     return (INT_PTR)FALSE;
 }
+#endif // ENABLE_NETWORK
 
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -1343,13 +1345,11 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     POINT pt;
     HWND hWnd;
     RECT rc;
-    Gdiplus::Bitmap *image_mp = NULL;
     static double dpiscaled = 0.0;
 
     switch (message)
     {
     case WM_INITDIALOG:
-        image_mp = LoadBarCodeMP();
         dpiscaled = GetDpiScaled();
         return (INT_PTR)TRUE;
     case WM_COMMAND:
@@ -1358,6 +1358,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
         }
+#ifdef ENABLE_NETWORK
         else if (LOWORD(wParam) == IDC_BUTTON_REWARD)
         {
             if (LoadBarCodeAlipay() && LoadBarCodeWechat())
@@ -1365,7 +1366,9 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_REWARD), hDlg, RewardProc);
             }
         }
+#endif
         break;
+#ifdef ENABLE_NETWORK
     case WM_PAINT:
         {
             HDC hdc;
@@ -1373,6 +1376,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             Gdiplus::Graphics *graphics = NULL;
             Rect rect;
             RECT rc;
+            Gdiplus::Bitmap *image_mp = NULL;
 
             GetClientRect(hDlg, &rc);
 
@@ -1406,6 +1410,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             return (INT_PTR)TRUE;
         }
         break;
+#endif
     case WM_LBUTTONDOWN:
         pt.x = LOWORD(lParam);
         pt.y = HIWORD(lParam);
@@ -2016,7 +2021,7 @@ LRESULT OnCreate(HWND hWnd)
     AuthClient auth("http://114.55.135.206:9527/check");
     if (!auth.ShowAuthDialog(hWnd))
     {
-        MessageBox(hWnd, _T("ÊÚÈ¨Ê§°Ü»òÒÑÈ¡Ïû£¬³ÌÐòÍË³ö"), _T("ÌáÊ¾"), MB_ICONERROR);
+        MessageBox(hWnd, _T("ï¿½ï¿½È¨Ê§ï¿½Ü»ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½"), _T("ï¿½ï¿½Ê¾"), MB_ICONERROR);
         exit(0);
     }
 #endif
