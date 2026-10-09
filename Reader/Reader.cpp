@@ -39,6 +39,7 @@ HINSTANCE hInst;                                // current instance
 TCHAR szTitle[MAX_LOADSTRING];                    // The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 TCHAR szStatusClass[MAX_LOADSTRING];            // the status window class name
+HWND hAboutDlg = NULL;                          // handle to about dialog
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -310,7 +311,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         switch (wmId)
         {
         case IDM_ABOUT:
-            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            if (hAboutDlg == NULL)
+            {
+                hAboutDlg = CreateDialog(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                if (hAboutDlg)
+                    ShowWindow(hAboutDlg, SW_SHOW);
+            }
+            else
+            {
+                SetForegroundWindow(hAboutDlg);
+            }
             break;
         case IDM_EXIT:
             DestroyWindow(hWnd);
@@ -907,10 +917,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 else if (GetAsyncKeyState(18) & 0x8000) // alt
                 {
-                    if (_textAlpha > 0x0f + UNIT_STEP)
+                    if (_textAlpha > 0x02 + UNIT_STEP)
                         _textAlpha -= UNIT_STEP;
                     else
-                        _textAlpha = 0x0f;
+                        _textAlpha = 0x02;
                     if (_WndInfo.bHideBorder || _WndInfo.bFullScreen)
                     {
                         ResetLayerd(hWnd);
@@ -1355,7 +1365,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
         {
-            EndDialog(hDlg, LOWORD(wParam));
+            DestroyWindow(hDlg);
             return (INT_PTR)TRUE;
         }
 #ifdef ENABLE_NETWORK
@@ -1368,6 +1378,12 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         }
 #endif
         break;
+    case WM_DESTROY:
+        hAboutDlg = NULL;
+        break;
+    case WM_CLOSE:
+        DestroyWindow(hDlg);
+        return (INT_PTR)TRUE;
 #ifdef ENABLE_NETWORK
     case WM_PAINT:
         {
@@ -2018,10 +2034,10 @@ INT_PTR CALLBACK UpgradeProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 LRESULT OnCreate(HWND hWnd)
 {
 #ifdef ENABLE_AUTHOR
-    AuthClient auth("http://114.55.135.206:9527/check");
+    AuthClient auth;
     if (!auth.ShowAuthDialog(hWnd))
     {
-        MessageBox(hWnd, _T("ï¿½ï¿½È¨Ê§ï¿½Ü»ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½"), _T("ï¿½ï¿½Ê¾"), MB_ICONERROR);
+        MessageBox_(hWnd, IDS_AUTH_FAIL, IDS_ERROR, MB_ICONERROR);
         exit(0);
     }
 #endif
@@ -4409,17 +4425,25 @@ HBITMAP CreateAlphaTextBitmap(HWND hWnd, HFONT inFont, COLORREF inColour, int wi
             FillG = GetGValue(inColour);
             FillB = GetBValue(inColour);
             for (y = 0; y < BMIH.biHeight; y++)
-            { 
+            {
                 for (x = 0; x < BMIH.biWidth; x++)
-                { 
+                {
                     ThisA = *DataPtr; // Move alpha and pre-multiply with RGB 
-                    *DataPtr++ = (FillB * ThisA) >> 8; 
-                    *DataPtr++ = (FillG * ThisA) >> 8; 
-                    *DataPtr++ = (FillR * ThisA) >> 8;
 #if 0
+                    // ²»ÏÞÖÆ°æ±¾£ºÖ±½ÓÓÃÔ­Ê¼ alpha Ô¤³Ë
+                    * DataPtr++ = (FillB * ThisA) >> 8;
+                    *DataPtr++ = (FillG * ThisA) >> 8;
+                    *DataPtr++ = (FillR * ThisA) >> 8;
                     *DataPtr++ = ThisA; // Set Alpha 
 #else
-                    *DataPtr++ = ThisA > _textAlpha ? _textAlpha : ThisA;
+                    // Ç¯Î»°æ±¾£ºRGB Ô¤³ËºÍ Alpha Í¨µÀÍ³Ò»ÓÃ outA£¬±£Ö¤×ÔÇ¢
+                    {
+                        BYTE outA = ThisA > _textAlpha ? _textAlpha : ThisA;
+                        *DataPtr++ = (FillB * outA) >> 8;
+                        *DataPtr++ = (FillG * outA) >> 8;
+                        *DataPtr++ = (FillR * outA) >> 8;
+                        *DataPtr++ = outA;
+                    }
 #endif
                 }
             }

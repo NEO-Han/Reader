@@ -1,0 +1,39 @@
+        IDS_RESTORE_DEFAULT           "Confirm to restore default settings?"
+        IDS_FONT_ZOOMIN                   "Font zoom in"
+END
+
+STRINGTABLE
+BEGIN
+        IDS_FONT_ZOOMOUT                 "Font zoom out"
+        IDS_AUTOPAGING                     "Auto paging..."
+        IDS_NOTEXIST_BOOKSOURCE   "The book source is not exist in the book source list."
+        IDS_NO_BOOKSOURCE_FAIL     "The book source could not be opened. please try again"
+        IDS_BOOK_NAME                       "Book Name"
+        IDS_AUTHOR                             "Author"
+        IDS_STATUS                             "Status"
+        IDS_MAINPAGE                         "Main Page"
+        IDS_NULL                                 "Null"
+        IDS_QUERYPAGE                       "Query Page"
+        IDS_ADD_COMPLETED               "Add completed"
+        IDS_SAVE_COMPLETED             "Save completed"
+        IDS_IMPORT_COMPLETED         "Import completed"
+        IDS_IMPORT_FAILED               "Import failed"
+        IDS_EXPORT_COMPLETED         "Export completed"
+        IDS_EXPORT_FAILED               "Export failed"
+END
+
+STRINGTABLE
+BEGIN
+        IDS_FILED_MODIFY                 "Book source has been changed, do you want to save changes?"
+        IDS_SINGLE_LINE                   "Single Line"
+        IDS_DOUBLE_LINE                   "Double Line"
+        IDS_THREE_LINE                     "Three Line"
+        IDS_FULL_PAGE                       "Full Page"
+        IDS_REQUEST_ERROR               "Request failed, code %d"
+        IDS_LOST_WARN                       "Failed to connect to Github book source repository, will use local (export) book source repository instead.\r\nTo connect to a local repository."
+        IDS_SYNC_FAIL                       "Failed to sync with Github book source repository. Please check the network, repository address, token and the local repository."
+        IDS_SYNC_SUCC                       "Sync with Github book source repository successfully"
+        IDS_AUTO_SYNC                       "Auto Sync"
+        IDS_STOP_SYNC                       "Stop Sync"
+        IDS_FILE_ISEXIST                 "The file already exists, do you want to overwrite it?"
+        IDS_AUTH_FAIL                       "Authorization failed or configuration error, please contact the administrator."
